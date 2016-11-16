@@ -13,7 +13,6 @@ int main(int argc, char** argv)
     {
         printf("unicode: %x\n", unicode_str[i]);
     }
-
 	printf("\n\n");
 
 	size = sconv_unicode_to_gbk(unicode_str, -1, NULL, 0);
@@ -25,4 +24,25 @@ int main(int argc, char** argv)
 	{
 		printf("ansi hex: %x\n", (unsigned char)ansi_str[i]);
 	}
+	printf("\n\n");
+
+	size = sconv_unicode_to_utf8(unicode_str, -1, NULL, 0);
+	char* utf8_str = new char[size + 1];
+	size = sconv_unicode_to_utf8(unicode_str, -1, utf8_str, 5);
+	utf8_str[size] = 0;
+	for (int i = 0; i < size; i++)
+	{
+		printf("utf8 hex: %x\n", (unsigned char)utf8_str[i]);
+	}
+	printf("\n\n");
+
+	size = sconv_utf8_to_unicode(utf8_str, -1, NULL, 0);
+	WCHAR* unicode = new WCHAR[size / 2 + 1];
+	size = sconv_utf8_to_unicode(utf8_str, -1, unicode, size);
+	unicode[size / 2] = 0;
+	for (int i = 0; i < size / 2; i++)
+	{
+		printf("unicode: %x\n", unicode[i]);
+	}
+	printf("\n\n");
 }
