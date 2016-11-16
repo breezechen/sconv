@@ -5,7 +5,7 @@ int sconv_gbk_to_unicode(const char *gbkstr, int slen, wchar *outbuf, int osize)
 {
     int ret = -1;
     int cnt = 0, i = 0, cb;
-    const unsigned char *p = gbkstr;
+    const unsigned char *p = (const unsigned char *)gbkstr;
     wchar *op = outbuf;
     unsigned char c1;
     wchar c, chr;
@@ -19,7 +19,7 @@ int sconv_gbk_to_unicode(const char *gbkstr, int slen, wchar *outbuf, int osize)
             while (*p++) {
                 ++slen;
             }
-            p = gbkstr;
+            p = (const unsigned char *)gbkstr;
         }
         while (i < slen) {
             c1 = *p;
@@ -263,7 +263,7 @@ utf8_wctomb(unsigned char *r, ucs4_t wc, int n) /* n == 0 is acceptable */
         wc = wc >> 6;
         wc |= 0xc0;
     case 1:
-        r[0] = wc;
+        r[0] = (unsigned char)wc;
     }
     return count;
 }
@@ -273,7 +273,7 @@ utf8_wctomb(unsigned char *r, ucs4_t wc, int n) /* n == 0 is acceptable */
 int sconv_utf8_to_unicode(const char *utf8str, int slen, wchar *outbuf, int osize)
 {
     int ret = -1;
-    const char *p = utf8str;
+    const unsigned char *p = (const unsigned char *)utf8str;
     int i = 0, cnt = 0, cb;
     wchar *op = outbuf;
     ucs4_t wc;
@@ -287,7 +287,7 @@ int sconv_utf8_to_unicode(const char *utf8str, int slen, wchar *outbuf, int osiz
             while (*p++) {
                 ++slen;
             }
-            p = utf8str;
+            p = (const unsigned char *)utf8str;
         }
         for (i = 0; i < slen;) {
             cb = utf8_mbtowc(&wc, p, slen - i);
@@ -319,9 +319,9 @@ int sconv_unicode_to_utf8(const wchar *wstr, int wlen, char *outbuf, int osize)
     int ret = -1;
     const wchar *p = wstr;
     int cnt = 0, i = 0, cb;
-    char *op = outbuf;
+    unsigned char *op = (unsigned char *)outbuf;
     ucs4_t wc;
-    char tmp[4];
+    unsigned char tmp[4];
 
     do {
         if (wstr == 0) {
