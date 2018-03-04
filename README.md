@@ -1,6 +1,6 @@
 # Lib sconv
 
-A simple codec conversion lib convert strings between gbk, utf8 and unicode with no dependence that works on windows, linux, embedded system and everywhere(No dependence).
+A simple codec conversion lib supporting string character set conversion between gbk, utf8 and unicode with no dependence, working on windows, linux, embedded system and everywhere(No dependence, really).
 
 # Implementation
 
