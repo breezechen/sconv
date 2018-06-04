@@ -1,11 +1,10 @@
-#ifndef SCONV_H
-#define SCONV_H
+#ifndef SCONV_STR_CODEC_HPP
+#define SCONV_STR_CODEC_HPP
 
+#include <string>
 typedef unsigned short  wchar;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace sconv {
 
 static unsigned short gbk_2_uni_tab[] =
 {
@@ -13096,13 +13095,7 @@ static unsigned short uni_2_gbk_tab[] =
 
 };
 
-// @slen: string lenth, in characters. 
-//        if this parameter is -1, the function processes the entire input string, 
-//          excluding the terminating null character. 
-// @osize: the size of outbuf, in bytes.
-// return : if outbuf is null, return needed buf size, in bytes.
-//          otherwise return the size of converted data filled in outbuf, in bytes.
-int sconv_gbk_to_unicode(const char *gbkstr, int slen, wchar *outbuf, int osize)
+static int sconv_gbk_to_unicode(const char *gbkstr, int slen, wchar *outbuf, int osize)
 {
     int ret = -1;
     int cnt = 0, i = 0, cb;
@@ -13157,8 +13150,7 @@ int sconv_gbk_to_unicode(const char *gbkstr, int slen, wchar *outbuf, int osize)
     return ret;
 }
 
-// @wlen: string len of wstr, in characters.
-int sconv_unicode_to_gbk(const wchar *wstr, int wlen, char *outbuf, int osize)
+static int sconv_unicode_to_gbk(const wchar *wstr, int wlen, char *outbuf, int osize)
 {
     int ret = -1;
     int cnt = 0, i, cb;
@@ -13194,9 +13186,9 @@ int sconv_unicode_to_gbk(const wchar *wstr, int wlen, char *outbuf, int osize)
                     if (cb == 1) {
                         *op++ = (char)chr;
                     } else {
-                        // 						if (0x81 && chr >= 0x100) {
-                        // 							*op++ = (char)(chr >> 8);
-                        // 						}
+                        //                      if (0x81 && chr >= 0x100) {
+                        //                          *op++ = (char)(chr >> 8);
+                        //                      }
                         *op++ = (char)(chr >> 8);
                         *op++ = (char)chr;
                     }
@@ -13210,6 +13202,7 @@ int sconv_unicode_to_gbk(const wchar *wstr, int wlen, char *outbuf, int osize)
     } while (0);
     return ret;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Codes from iconv
@@ -13237,8 +13230,7 @@ typedef unsigned int ucs4_t;
 
 /* Specification: RFC 3629 */
 
-static int
-utf8_mbtowc(ucs4_t *pwc, const unsigned char *s, int n)
+static int utf8_mbtowc(ucs4_t *pwc, const unsigned char *s, int n)
 {
     unsigned char c = s[0];
 
@@ -13320,8 +13312,7 @@ utf8_mbtowc(ucs4_t *pwc, const unsigned char *s, int n)
     }
 }
 
-static int
-utf8_wctomb(unsigned char *r, ucs4_t wc, int n) /* n == 0 is acceptable */
+static int utf8_wctomb(unsigned char *r, ucs4_t wc, int n) /* n == 0 is acceptable */
 {
     int count;
     if (wc < 0x80) {
@@ -13370,7 +13361,8 @@ utf8_wctomb(unsigned char *r, ucs4_t wc, int n) /* n == 0 is acceptable */
 }
 // iconv end.
 
-int sconv_utf8_to_unicode(const char *utf8str, int slen, wchar *outbuf, int osize)
+
+static int sconv_utf8_to_unicode(const char *utf8str, int slen, wchar *outbuf, int osize)
 {
     int ret = -1;
     const unsigned char *p = (const unsigned char *)utf8str;
@@ -13414,7 +13406,7 @@ int sconv_utf8_to_unicode(const char *utf8str, int slen, wchar *outbuf, int osiz
 }
 
 
-int sconv_unicode_to_utf8(const wchar *wstr, int wlen, char *outbuf, int osize)
+static int sconv_unicode_to_utf8(const wchar *wstr, int wlen, char *outbuf, int osize)
 {
     int ret = -1;
     const wchar *p = wstr;
@@ -13455,8 +13447,83 @@ int sconv_unicode_to_utf8(const wchar *wstr, int wlen, char *outbuf, int osize)
     return ret;
 }
 
-#ifdef __cplusplus
+inline std::wstring GbkToUnicode(const std::string& gbk_str)
+{
+    int size = sconv_gbk_to_unicode(gbk_str.c_str(), gbk_str.size(), 0, 0);
+    wchar* unicode = new wchar[size / 2 + 1];
+    size = sconv_gbk_to_unicode(gbk_str.c_str(), gbk_str.size(), unicode, sizeof(wchar) * (size / 2 + 1));
+    unicode[size / 2] = 0;
+    std::wstring ret((wchar_t*)unicode, size / 2);
+    delete[] unicode;
+    return ret;
 }
-#endif
 
-#endif // SCONV_H
+inline std::string UnicodeToGbk(const std::wstring& unicode_str)
+{
+    int size = sconv_unicode_to_gbk((wchar *)unicode_str.c_str(), unicode_str.size(), 0, 0);
+    char* gbk = new char[size + 1];
+    size = sconv_unicode_to_gbk((wchar *)unicode_str.c_str(), unicode_str.size(), gbk, size + 1);
+    gbk[size] = 0;
+    std::string ret(gbk, size);
+    delete[] gbk;
+    return ret;
+}
+
+inline std::wstring Utf8ToUnicode(const std::string& utf8_str)
+{
+    int size = sconv_utf8_to_unicode(utf8_str.c_str(), utf8_str.size(), 0, 0);
+    wchar* unicode = new wchar[size / 2 + 1];
+    size = sconv_utf8_to_unicode(utf8_str.c_str(), utf8_str.size(), unicode, sizeof(wchar) * (size / 2 + 1));
+    unicode[size / 2] = 0;
+    std::wstring ret((wchar_t*)unicode, size / 2);
+    delete[] unicode;
+    return ret;
+}
+
+inline std::string UnicodeToUtf8(const std::wstring& unicode_str)
+{
+    int size = sconv_unicode_to_utf8((wchar *)unicode_str.c_str(), unicode_str.size(), 0, 0);
+    char* utf8 = new char[size + 1];
+    size = sconv_unicode_to_utf8((wchar *)unicode_str.c_str(), unicode_str.size(), utf8, size + 1);
+    utf8[size] = 0;
+    std::string ret(utf8, size);
+    delete[] utf8;
+    return ret;
+}
+
+inline std::string GbkToUtf8(const std::string& gbk_str)
+{
+    int size = sconv_gbk_to_unicode(gbk_str.c_str(), gbk_str.size(), 0, 0);
+    wchar* unicode = new wchar[size / 2 + 1];
+    size = sconv_gbk_to_unicode(gbk_str.c_str(), gbk_str.size(), unicode, sizeof(wchar) * (size / 2 + 1));
+    unicode[size / 2] = 0;
+    int wlen = size / 2;
+    size = sconv_unicode_to_utf8(unicode, wlen, 0, 0);
+    char* utf8 = new char[size + 1];
+    size = sconv_unicode_to_utf8(unicode, wlen, utf8, size + 1);
+    utf8[size] = 0;
+    std::string ret(utf8, size);
+    delete[] utf8;
+    delete[] unicode;
+    return ret;
+}
+
+inline std::string Utf8ToGbk(const std::string& utf8_str)
+{
+    int size = sconv_utf8_to_unicode(utf8_str.c_str(), utf8_str.size(), 0, 0);
+    wchar* unicode = new wchar[size / 2 + 1];
+    size = sconv_utf8_to_unicode(utf8_str.c_str(), utf8_str.size(), unicode, sizeof(wchar) * (size / 2 + 1));
+    unicode[size / 2] = 0;
+    int wlen = size / 2;
+    size = sconv_unicode_to_gbk(unicode, wlen, 0, 0);
+    char* gbk = new char[size + 1];
+    size = sconv_unicode_to_gbk(unicode, wlen, gbk, size + 1);
+    gbk[size] = 0;
+    std::string ret(gbk, size);
+    delete[] gbk;
+    delete[] unicode;
+    return ret;
+}
+}
+
+#endif
